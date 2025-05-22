@@ -19,10 +19,10 @@ $(document).ready(function () {
         $('.maplibregl-marker svg').eq(0).remove()
         $('.maplibregl-marker').eq(0).html(`<img class="bolide" src="./free-icon-racing-car-1505502.png"/>`)
 
-        if (pendingSimulatedRoute && pendingSimulatedRoute.length > 0) {
-            simulateMovementAlongRoute(pendingSimulatedRoute);
-            pendingSimulatedRoute = null; // сбросить, чтобы не запускалось снова
-        }
+        // if (pendingSimulatedRoute && pendingSimulatedRoute.length > 0) {
+        //     simulateMovementAlongRoute(pendingSimulatedRoute);
+        //     pendingSimulatedRoute = null; // сбросить, чтобы не запускалось снова
+        // }
     });
 
     // 🔍 Функция для поиска ближайшей точки на маршруте
