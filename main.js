@@ -19,10 +19,10 @@ $(document).ready(function () {
         $('.maplibregl-marker svg').eq(0).remove()
         $('.maplibregl-marker').eq(0).html(`<img class="bolide" src="./free-icon-racing-car-1505502.png"/>`)
 
-        // if (pendingSimulatedRoute && pendingSimulatedRoute.length > 0) {
-        //     // simulateMovementAlongRoute(pendingSimulatedRoute);
-        //     // pendingSimulatedRoute = null; // сбросить, чтобы не запускалось снова
-        // }
+        if (pendingSimulatedRoute && pendingSimulatedRoute.length > 0) {
+            simulateMovementAlongRoute(pendingSimulatedRoute);
+            pendingSimulatedRoute = null; // сбросить, чтобы не запускалось снова
+        }
     });
 
     // 🔍 Функция для поиска ближайшей точки на маршруте
@@ -107,12 +107,26 @@ $(document).ready(function () {
 
                 initialized = true;
 
-            } else  {
+            } else {
+            if (fullRouteCoords.length > 0 && map.getSource('route')) {
+                const nearestIndex = findNearestIndex(currentPosition, fullRouteCoords);
+                const remainingRoute = fullRouteCoords.slice(nearestIndex);
+
+                // 🔹 1. Удалить пройденный маршрут
+                map.getSource('route').setData({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: remainingRoute
+                    }
+                });
+
+                // 🔹 2. Переместить маркер уже после обновления маршрута
                 startMarker.setLngLat(currentPosition);
 
-                if (trackingEnabled && fullRouteCoords.length > 1) {
-                    const nearestIndex = findNearestIndex(currentPosition, fullRouteCoords);
-                    const nextPoint = fullRouteCoords[Math.min(nearestIndex + 1, fullRouteCoords.length - 1)];
+                // 🔹 3. Двигаем карту (если включено слежение)
+                if (trackingEnabled && remainingRoute.length > 1) {
+                    const nextPoint = remainingRoute[1];
                     const bearing = getBearing(currentPosition, nextPoint);
 
                     map.easeTo({
@@ -122,40 +136,19 @@ $(document).ready(function () {
                         duration: 1000
                     });
                 }
-
-                if (fullRouteCoords.length > 0 && map.getSource('route')) {
-                    const nearestIndex = findNearestIndex(currentPosition, fullRouteCoords);
-                    const remainingRoute = fullRouteCoords.slice(nearestIndex);
-
-                    map.getSource('route').setData({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'LineString',
-                            coordinates: remainingRoute
-                        }
-                    })
-                }
-
-                if (fullRouteCoords.length > 0 && map.getSource('route')) {
-                    const nearestIndex = findNearestIndex(currentPosition, fullRouteCoords);
-                    const remainingRoute = fullRouteCoords.slice(nearestIndex);
-
-                    map.getSource('route').setData({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'LineString',
-                            coordinates: remainingRoute
-                        }
-                    })
-                }
+            } else {
+                // Без маршрута — просто обновить позицию маркера
+                startMarker.setLngLat(currentPosition);
             }
-        },
+        }
+
+    },
         function (error) {
             console.error("Ошибка при получении геолокации:", error.message);
         },
         {
             enableHighAccuracy: true,
-            maximumAge: 5000,
+            maximumAge: 0,
             timeout: 10000
         }
     );
@@ -313,24 +306,11 @@ $(document).ready(function () {
             }
 
             const lngLat = coords[i];
-            currentPosition = lngLat;
-            startMarker.setLngLat(lngLat);
-            map.setCenter(lngLat);
-
-            // Для двигающейся камеры
             const nextPoint = coords[Math.min(i + 1, totalPoints - 1)];
-            const bearing = getBearing(lngLat, nextPoint);
-
-            map.easeTo({
-                center: lngLat,
-                bearing: bearing,
-                pitch: 45,
-                duration: 300
-            });
-
 
             const remainingCoords = coords.slice(i);
 
+            // 🔹 1. Сначала обновим оставшуюся линию
             const updatedRouteGeoJSON = {
                 type: 'Feature',
                 geometry: {
@@ -343,7 +323,21 @@ $(document).ready(function () {
                 map.getSource('route').setData(updatedRouteGeoJSON);
             }
 
+            // 🔹 2. Затем переместим маркер
+            currentPosition = lngLat;
+            startMarker.setLngLat(lngLat);
+
+            // 🔹 3. Потом переместим камеру
+            const bearing = getBearing(lngLat, nextPoint);
+            map.easeTo({
+                center: lngLat,
+                bearing: bearing,
+                pitch: 45,
+                duration: 300
+            });
+
             i++;
-        }, 300); // скорость анимации
+        }, 1000); // скорость анимации
     }
+
 });

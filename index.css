@@ -52,5 +52,5 @@ body { margin: 0; padding: 0; }
 .bolide {
     width: 27px;
     height: 27px;
-    transform: rotate(-90deg);
+    transform: translateY(15px) rotate(-90deg);
 }
