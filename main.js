@@ -20,7 +20,7 @@ $(document).ready(function () {
         $('.maplibregl-marker').eq(0).html(`<img class="bolide" src="./free-icon-racing-car-1505502.png"/>`)
 
         if (pendingSimulatedRoute && pendingSimulatedRoute.length > 0) {
-            simulateMovementAlongRoute(pendingSimulatedRoute);
+            // simulateMovementAlongRoute(pendingSimulatedRoute);
             pendingSimulatedRoute = null; // сбросить, чтобы не запускалось снова
         }
     });
