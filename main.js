@@ -19,10 +19,10 @@ $(document).ready(function () {
         $('.maplibregl-marker svg').eq(0).remove()
         $('.maplibregl-marker').eq(0).html(`<img class="bolide" src="./free-icon-racing-car-1505502.png"/>`)
 
-        // if (pendingSimulatedRoute && pendingSimulatedRoute.length > 0) {
-        //     simulateMovementAlongRoute(pendingSimulatedRoute);
-        //     pendingSimulatedRoute = null; // сбросить, чтобы не запускалось снова
-        // }
+        if (pendingSimulatedRoute && pendingSimulatedRoute.length > 0) {
+            simulateMovementAlongRoute(pendingSimulatedRoute);
+            pendingSimulatedRoute = null; // сбросить, чтобы не запускалось снова
+        }
     });
 
     // 🔍 Функция для поиска ближайшей точки на маршруте
@@ -110,7 +110,10 @@ $(document).ready(function () {
             } else {
             if (fullRouteCoords.length > 0 && map.getSource('route')) {
                 const nearestIndex = findNearestIndex(currentPosition, fullRouteCoords);
-                const remainingRoute = fullRouteCoords.slice(nearestIndex);
+                const offset = 3;
+                const adjustedIndex = Math.max(0, nearestIndex - offset);
+                const remainingRoute = fullRouteCoords.slice(adjustedIndex);
+
 
                 // 🔹 1. Удалить пройденный маршрут
                 map.getSource('route').setData({
