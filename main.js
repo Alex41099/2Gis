@@ -20,7 +20,7 @@ $(document).ready(function () {
         $('.maplibregl-marker').eq(0).html(`<img class="bolide" src="./free-icon-racing-car-1505502.png"/>`)
 
         if (pendingSimulatedRoute && pendingSimulatedRoute.length > 0) {
-            // simulateMovementAlongRoute(pendingSimulatedRoute);
+            simulateMovementAlongRoute(pendingSimulatedRoute);
             pendingSimulatedRoute = null; // сбросить, чтобы не запускалось снова
         }
     });
@@ -109,6 +109,19 @@ $(document).ready(function () {
 
             } else  {
                 startMarker.setLngLat(currentPosition);
+
+                if (trackingEnabled && fullRouteCoords.length > 1) {
+                    const nearestIndex = findNearestIndex(currentPosition, fullRouteCoords);
+                    const nextPoint = fullRouteCoords[Math.min(nearestIndex + 1, fullRouteCoords.length - 1)];
+                    const bearing = getBearing(currentPosition, nextPoint);
+
+                    map.easeTo({
+                        center: currentPosition,
+                        bearing: bearing,
+                        pitch: 45,
+                        duration: 1000
+                    });
+                }
 
                 if (fullRouteCoords.length > 0 && map.getSource('route')) {
                     const nearestIndex = findNearestIndex(currentPosition, fullRouteCoords);
